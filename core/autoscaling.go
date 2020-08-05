@@ -61,42 +61,9 @@ func (a *autoScalingGroup) loadLaunchConfiguration() (*launchConfiguration, erro
 }
 
 func (a *autoScalingGroup) populateASGInstancesInService() error {
-	//var instancesSpot = []*string
-	//var instancesOnDemand = []*string
-	//var instances = []*string
-	/*
-		for i := range a.instances.instances() {
-		  if i.isSpot() {
-		    instancesSpotInService[i.InstanceId] = true
-		    //instancesSpot = append(instancesSpot, i.InstanceId)
-		  } else {
-		    instancesOnDemandInService[i.InstanceId] = true
-		    //instancesOnDemand =append(instancesOnDemand, i.InstanceId)
-		  }
-		}
-
-		result, err := a.region.services.autoScaling.DescribeAutoScalingInstances(
-			&autoscaling.DescribeAutoScalingInstancesInput{
-			  //InstanceIds: append(instancesSpot, instancesOnDemand...)
-			})
-
-		if err != nil {
-		  logger.Println("Unable to DescribeAutoScalingInstances: ", err.Error())
-		  return err
-		}
-
-		autoScalingInstances := result.AutoScalingInstances
-
-		for i := range autoScalingInstances {
-		  if i.LifecycleState != "InService" {
-		    if _, found := instancesSpotInService[i.InstanceId]; found {
-		  }
-		}
-		    a.instancesSpotInService[i.InstanceId] = true
-		    a.instancesOnDemandInService[i.InstanceId] = true
-		return nil
-	*/
-	var instancesInService map[*string]bool
+	instancesInService := make(map[*string]bool)
+	a.instancesSpotInService := make(map[*string]bool)
+	a.instancesOnDemandInService := make(map[*string]bool)
 
 	result, err := a.region.services.autoScaling.DescribeAutoScalingInstances(
 		&autoscaling.DescribeAutoScalingInstancesInput{})
@@ -228,6 +195,7 @@ func (a *autoScalingGroup) cronEventAction() runer {
 	a.scanInstances()
 	a.loadDefaultConfig()
 	a.loadConfigFromTags()
+	a.populateASGInstancesInService()
 
 	logger.Println("Finding spot instances created for", a.name)
 
