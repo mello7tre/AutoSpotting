@@ -20,12 +20,14 @@ import (
 type autoScalingGroup struct {
 	*autoscaling.Group
 
-	name                string
-	region              *region
-	launchConfiguration *launchConfiguration
-	instances           instances
-	minOnDemand         int64
-	config              AutoScalingConfig
+	name                       string
+	region                     *region
+	launchConfiguration        *launchConfiguration
+	instances                  instances
+	minOnDemand                int64
+	config                     AutoScalingConfig
+	instancesOnDemandInService map[*string]bool
+	instancesSpotInService     map[*string]bool
 }
 
 func (a *autoScalingGroup) loadLaunchConfiguration() (*launchConfiguration, error) {
@@ -56,6 +58,77 @@ func (a *autoScalingGroup) loadLaunchConfiguration() (*launchConfiguration, erro
 		LaunchConfiguration: resp.LaunchConfigurations[0],
 	}
 	return a.launchConfiguration, nil
+}
+
+func (a *autoScalingGroup) populateASGInstancesInService() error {
+	//var instancesSpot = []*string
+	//var instancesOnDemand = []*string
+	//var instances = []*string
+	/*
+		for i := range a.instances.instances() {
+		  if i.isSpot() {
+		    instancesSpotInService[i.InstanceId] = true
+		    //instancesSpot = append(instancesSpot, i.InstanceId)
+		  } else {
+		    instancesOnDemandInService[i.InstanceId] = true
+		    //instancesOnDemand =append(instancesOnDemand, i.InstanceId)
+		  }
+		}
+
+		result, err := a.region.services.autoScaling.DescribeAutoScalingInstances(
+			&autoscaling.DescribeAutoScalingInstancesInput{
+			  //InstanceIds: append(instancesSpot, instancesOnDemand...)
+			})
+
+		if err != nil {
+		  logger.Println("Unable to DescribeAutoScalingInstances: ", err.Error())
+		  return err
+		}
+
+		autoScalingInstances := result.AutoScalingInstances
+
+		for i := range autoScalingInstances {
+		  if i.LifecycleState != "InService" {
+		    if _, found := instancesSpotInService[i.InstanceId]; found {
+		  }
+		}
+		    a.instancesSpotInService[i.InstanceId] = true
+		    a.instancesOnDemandInService[i.InstanceId] = true
+		return nil
+	*/
+	var instancesInService map[*string]bool
+
+	result, err := a.region.services.autoScaling.DescribeAutoScalingInstances(
+		&autoscaling.DescribeAutoScalingInstancesInput{})
+
+	if err != nil {
+		logger.Printf("Unable to DescribeAutoScalingInstances in ASG %s: %s", a.name, err.Error())
+		return err
+	}
+
+	autoScalingInstances := result.AutoScalingInstances
+
+	for _, i := range autoScalingInstances {
+		if *i.LifecycleState == "InService" {
+			instancesInService[i.InstanceId] = true
+		}
+	}
+
+	for i := range a.instances.instances() {
+		if _, found := instancesInService[i.InstanceId]; found {
+			if i.isSpot() {
+				a.instancesSpotInService[i.InstanceId] = true
+			} else {
+				a.instancesOnDemandInService[i.InstanceId] = true
+			}
+		}
+	}
+
+	logger.Printf("Instance InService in ASG %s: Spot=%s, OnDemand=%s",
+		a.name, len(a.instancesSpotInService), len(a.instancesOnDemandInService))
+
+	return nil
+
 }
 
 func (a *autoScalingGroup) needReplaceOnDemandInstances() (bool, int64) {
@@ -714,7 +787,7 @@ func (a *autoScalingGroup) detachAndTerminateOnDemandInstance(
 	return a.region.instances.get(*instanceID).terminate()
 }
 
-// Terminates an on-demand instance from the group using the
+// Terminates an instance from the group using the
 // TerminateInstanceInAutoScalingGroup api call.
 func (a *autoScalingGroup) terminateInstanceInAutoScalingGroup(
 	instanceID *string, wait bool, decreaseCapacity bool) error {
@@ -731,7 +804,7 @@ func (a *autoScalingGroup) terminateInstanceInAutoScalingGroup(
 		}
 
 		if err = a.waitForInstanceStatus(instanceID, "InService", 5); err != nil {
-			logger.Printf("OnDemand instance %v is still not InService, trying to terminate it anyway.",
+			logger.Printf("Instance %v is still not InService, trying to terminate it anyway.",
 				*instanceID)
 		}
 	}
