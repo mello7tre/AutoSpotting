@@ -243,6 +243,7 @@ func (i *instance) belongsToEnabledASG() bool {
 			asg.loadDefaultConfig()
 			asg.loadConfigFromTags()
 			asg.loadLaunchConfiguration()
+			asg.populateASGInstancesInService()
 			i.asg = &asg
 			i.price = i.typeInfo.pricing.onDemand / i.region.conf.OnDemandPriceMultiplier * i.asg.config.OnDemandPriceMultiplier
 			logger.Printf("%s instace %s belongs to enabled ASG %s", i.region.name,

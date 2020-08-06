@@ -26,8 +26,8 @@ type autoScalingGroup struct {
 	instances                  instances
 	minOnDemand                int64
 	config                     AutoScalingConfig
-	instancesOnDemandInService map[*string]bool
-	instancesSpotInService     map[*string]bool
+	instancesOnDemandInService map[string]bool
+	instancesSpotInService     map[string]bool
 }
 
 func (a *autoScalingGroup) loadLaunchConfiguration() (*launchConfiguration, error) {
@@ -61,41 +61,45 @@ func (a *autoScalingGroup) loadLaunchConfiguration() (*launchConfiguration, erro
 }
 
 func (a *autoScalingGroup) populateASGInstancesInService() error {
-	instancesInService := make(map[*string]bool)
-	a.instancesSpotInService = make(map[*string]bool)
-	a.instancesOnDemandInService = make(map[*string]bool)
+	instancesInService := make(map[string]bool)
+	a.instancesSpotInService = make(map[string]bool)
+	a.instancesOnDemandInService = make(map[string]bool)
 
-	result, err := a.region.services.autoScaling.DescribeAutoScalingInstances(
-		&autoscaling.DescribeAutoScalingInstancesInput{})
+	result, err := a.region.services.autoScaling.DescribeAutoScalingGroups(
+		&autoscaling.DescribeAutoScalingGroupsInput{
+			AutoScalingGroupNames: []*string{&a.name},
+		})
 
 	if err != nil {
-		logger.Printf("Unable to DescribeAutoScalingInstances in ASG %s: %s", a.name, err.Error())
+		logger.Printf("Unable to DescribeAutoScalingGroup %s Instances: %s", a.name, err.Error())
 		return err
 	}
 
-	autoScalingInstances := result.AutoScalingInstances
+	autoScalingGroups := result.AutoScalingGroups
 
-	for _, i := range autoScalingInstances {
-		if *i.LifecycleState == "InService" {
-			instancesInService[i.InstanceId] = true
-		}
-	}
+	if len(autoScalingGroups) > 0 {
+		autoScalingInstances := autoScalingGroups[0].Instances
 
-	for i := range a.instances.instances() {
-		if _, found := instancesInService[i.InstanceId]; found {
-			if i.isSpot() {
-				a.instancesSpotInService[i.InstanceId] = true
-			} else {
-				a.instancesOnDemandInService[i.InstanceId] = true
+		for _, i := range autoScalingInstances {
+			if *i.LifecycleState == "InService" {
+				instancesInService[*i.InstanceId] = true
 			}
 		}
+
+		for i := range a.instances.instances() {
+			if _, found := instancesInService[*i.InstanceId]; found {
+				if i.isSpot() {
+					a.instancesSpotInService[*i.InstanceId] = true
+				} else {
+					a.instancesOnDemandInService[*i.InstanceId] = true
+				}
+			}
+		}
+
+		logger.Printf("Instance InService in ASG %s: Spot=%d, OnDemand=%d",
+			a.name, len(a.instancesSpotInService), len(a.instancesOnDemandInService))
 	}
-
-	logger.Printf("Instance InService in ASG %s: Spot=%d, OnDemand=%d",
-		a.name, len(a.instancesSpotInService), len(a.instancesOnDemandInService))
-
 	return nil
-
 }
 
 func (a *autoScalingGroup) needReplaceOnDemandInstances() (bool, int64) {
