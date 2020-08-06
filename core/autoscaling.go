@@ -26,8 +26,8 @@ type autoScalingGroup struct {
 	instances                  instances
 	minOnDemand                int64
 	config                     AutoScalingConfig
-	instancesOnDemandInService map[string]bool
-	instancesSpotInService     map[string]bool
+	instancesOnDemandInService map[string]*instance
+	instancesSpotInService     map[string]*instance
 }
 
 func (a *autoScalingGroup) loadLaunchConfiguration() (*launchConfiguration, error) {
@@ -62,8 +62,8 @@ func (a *autoScalingGroup) loadLaunchConfiguration() (*launchConfiguration, erro
 
 func (a *autoScalingGroup) populateASGInstancesInService() error {
 	instancesInService := make(map[string]bool)
-	a.instancesSpotInService = make(map[string]bool)
-	a.instancesOnDemandInService = make(map[string]bool)
+	a.instancesSpotInService = make(map[string]*instance)
+	a.instancesOnDemandInService = make(map[string]*instance)
 
 	result, err := a.region.services.autoScaling.DescribeAutoScalingGroups(
 		&autoscaling.DescribeAutoScalingGroupsInput{
@@ -89,9 +89,9 @@ func (a *autoScalingGroup) populateASGInstancesInService() error {
 		for i := range a.instances.instances() {
 			if _, found := instancesInService[*i.InstanceId]; found {
 				if i.isSpot() {
-					a.instancesSpotInService[*i.InstanceId] = true
+					a.instancesSpotInService[*i.InstanceId] = i
 				} else {
-					a.instancesOnDemandInService[*i.InstanceId] = true
+					a.instancesOnDemandInService[*i.InstanceId] = i
 				}
 			}
 		}
@@ -102,47 +102,49 @@ func (a *autoScalingGroup) populateASGInstancesInService() error {
 	return nil
 }
 
-func (a *autoScalingGroup) needReplaceOnDemandInstances() (bool, int64) {
-	onDemandRunning, totalRunning := a.alreadyRunningInstanceCount(false, nil)
+func (a *autoScalingGroup) needReplaceOnDemandInstances() bool {
+	//a.alreadyRunningInstanceCount(false, nil)
+	onDemandRunning := int64(len(a.instancesOnDemandInService))
+	totalRunning := int64(len(a.instancesOnDemandInService) + len(a.instancesSpotInService))
 	debug.Printf("onDemandRunning=%v totalRunning=%v a.minOnDemand=%v",
 		onDemandRunning, totalRunning, a.minOnDemand)
 
 	if totalRunning == 0 {
 		logger.Printf("The group %s is currently empty or in the process of launching new instances",
 			a.name)
-		return true, totalRunning
+		return true
 	}
 
 	if onDemandRunning > a.minOnDemand {
 		logger.Println("Currently more than enough OnDemand instances running")
-		return true, totalRunning
+		return true
 	}
 
 	if onDemandRunning == a.minOnDemand {
 		logger.Println("Currently OnDemand running equals to the required number, skipping run")
-		return false, totalRunning
+		return false
 	}
 	logger.Println("Currently fewer OnDemand instances than required !")
-	return false, totalRunning
+	return false
 }
 
-func (a *autoScalingGroup) terminateRandomSpotInstanceIfHavingEnough(totalRunning int64, wait bool) error {
+func (a *autoScalingGroup) terminateRandomSpotInstanceIfHavingEnough(wait bool) error {
+	onDemandRunning := int64(len(a.instancesOnDemandInService))
+	totalRunning := int64(len(a.instancesOnDemandInService) + len(a.instancesSpotInService))
 
 	if totalRunning == 1 {
 		logger.Println("Warning: blocking replacement of very last instance - consider raising ASG to >= 2")
 		return nil
 	}
 
-	if allInstancesAreRunning, onDemandRunning := a.allInstancesRunning(); allInstancesAreRunning {
-		if a.instances.count64() == *a.DesiredCapacity && onDemandRunning == a.minOnDemand {
-			logger.Println("Currently Spot running equals to the required number, skipping termination")
-			return nil
-		}
+	if totalRunning < *a.DesiredCapacity {
+		logger.Println("Not enough capacity in the group, skipping termination")
+		return nil
+	}
 
-		if a.instances.count64() < *a.DesiredCapacity {
-			logger.Println("Not enough capacity in the group")
-			return nil
-		}
+	if totalRunning == *a.DesiredCapacity && onDemandRunning == a.minOnDemand {
+		logger.Println("Currently Spot running equals to the required number, skipping termination")
+		return nil
 	}
 
 	randomSpot := a.getAnySpotInstance()
@@ -224,9 +226,9 @@ func (a *autoScalingGroup) cronEventAction() runer {
 
 		onDemandInstance := a.getAnyUnprotectedOnDemandInstance()
 
-		if need, total := a.needReplaceOnDemandInstances(); !need {
+		if need := a.needReplaceOnDemandInstances(); !need {
 			logger.Printf("Not allowed to replace any more of the running OD instances in %s", a.name)
-			return terminateSpotInstance{target{asg: a, totalInstances: total}}
+			return terminateSpotInstance{target{asg: a}}
 		}
 
 		if onDemandInstance == nil {
@@ -244,13 +246,12 @@ func (a *autoScalingGroup) cronEventAction() runer {
 	spotInstanceID := *spotInstance.InstanceId
 	logger.Println("Found unattached spot instance", spotInstanceID)
 
-	if need, total := a.needReplaceOnDemandInstances(); !need || !shouldRun {
+	if need := a.needReplaceOnDemandInstances(); !need || !shouldRun {
 
 		return terminateUnneededSpotInstance{
 			target{
-				asg:            a,
-				spotInstance:   spotInstance,
-				totalInstances: total,
+				asg:          a,
+				spotInstance: spotInstance,
 			}}
 	}
 
@@ -468,7 +469,10 @@ func (a *autoScalingGroup) getAnyOnDemandInstance() *instance {
 }
 
 func (a *autoScalingGroup) getAnySpotInstance() *instance {
-	return a.getInstance(nil, false, false)
+	for _, i := range a.instancesSpotInService {
+		return i
+	}
+	return nil
 }
 
 func (a *autoScalingGroup) hasMemberInstance(inst *instance) bool {

@@ -264,7 +264,7 @@ func (i *instance) belongsToAnASG() (bool, *string) {
 }
 
 func (i *instance) asgNeedsReplacement() bool {
-	ret, _ := i.asg.needReplaceOnDemandInstances()
+	ret := i.asg.needReplaceOnDemandInstances()
 	return ret
 }
 

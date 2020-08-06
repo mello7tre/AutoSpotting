@@ -2,7 +2,7 @@ package autospotting
 
 type target struct {
 	asg              *autoScalingGroup
-	totalInstances   int64
+	//totalInstances   int64
 	onDemandInstance *instance
 	spotInstance     *instance
 }
@@ -36,8 +36,7 @@ func (tsi terminateSpotInstance) run() {
 	asg := tsi.target.asg
 
 	asg.enableForInstanceLaunchEventHandling()
-	asg.terminateRandomSpotInstanceIfHavingEnough(
-		tsi.target.totalInstances, true)
+	asg.terminateRandomSpotInstanceIfHavingEnough(true)
 }
 
 // launches a spot instance replacement
@@ -61,11 +60,11 @@ type terminateUnneededSpotInstance struct {
 
 func (tusi terminateUnneededSpotInstance) run() {
 	asg := tusi.target.asg
-	total := tusi.target.totalInstances
+	//total := tusi.target.totalInstances
 	spotInstance := tusi.target.spotInstance
 	spotInstanceID := *spotInstance.InstanceId
 
-	asg.terminateRandomSpotInstanceIfHavingEnough(total, true)
+	//asg.terminateRandomSpotInstanceIfHavingEnough(total, true)
 	logger.Println("Spot instance", spotInstanceID, "is not need anymore by ASG",
 		asg.name, "terminating the spot instance.")
 	spotInstance.terminate()
