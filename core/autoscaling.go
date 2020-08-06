@@ -62,8 +62,8 @@ func (a *autoScalingGroup) loadLaunchConfiguration() (*launchConfiguration, erro
 
 func (a *autoScalingGroup) populateASGInstancesInService() error {
 	instancesInService := make(map[*string]bool)
-	a.instancesSpotInService := make(map[*string]bool)
-	a.instancesOnDemandInService := make(map[*string]bool)
+	a.instancesSpotInService = make(map[*string]bool)
+	a.instancesOnDemandInService = make(map[*string]bool)
 
 	result, err := a.region.services.autoScaling.DescribeAutoScalingInstances(
 		&autoscaling.DescribeAutoScalingInstancesInput{})
@@ -91,7 +91,7 @@ func (a *autoScalingGroup) populateASGInstancesInService() error {
 		}
 	}
 
-	logger.Printf("Instance InService in ASG %s: Spot=%s, OnDemand=%s",
+	logger.Printf("Instance InService in ASG %s: Spot=%d, OnDemand=%d",
 		a.name, len(a.instancesSpotInService), len(a.instancesOnDemandInService))
 
 	return nil
