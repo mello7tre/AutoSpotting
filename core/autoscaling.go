@@ -104,8 +104,6 @@ func (a *autoScalingGroup) populateASGInstancesInService() error {
 
 func (a *autoScalingGroup) needReplaceOnDemandInstances() bool {
 	onDemandRunning, totalRunning := a.alreadyRunningInstanceCount(false, nil)
-	//onDemandRunning := int64(len(a.instancesOnDemandInService))
-	//totalRunning := int64(len(a.instancesOnDemandInService) + len(a.instancesSpotInService))
 	debug.Printf("onDemandRunning=%v totalRunning=%v a.minOnDemand=%v",
 		onDemandRunning, totalRunning, a.minOnDemand)
 
