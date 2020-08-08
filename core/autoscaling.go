@@ -305,6 +305,11 @@ func (a *autoScalingGroup) scanInstances() instances {
 			i.price = i.typeInfo.pricing.onDemand
 		}
 
+		// Avoid adding instance in Terminating (Wait|Proceed) Lifecycle State
+		if strings.HasPrefix(*inst.LifecycleState, "Terminating"){
+			continue
+		}
+
 		a.instances.add(i)
 	}
 	return a.instances

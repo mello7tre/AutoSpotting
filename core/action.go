@@ -65,7 +65,7 @@ func (tusi terminateUnneededSpotInstance) run() {
 	spotInstance := tusi.target.spotInstance
 	spotInstanceID := *spotInstance.InstanceId
 
-	asg.terminateRandomSpotInstanceIfHavingEnough(total, true)
+	//asg.terminateRandomSpotInstanceIfHavingEnough(total, true)
 	logger.Println("Spot instance", spotInstanceID, "is not need anymore by ASG",
 		asg.name, "terminating the spot instance.")
 	spotInstance.terminate()
