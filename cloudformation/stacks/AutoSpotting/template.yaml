@@ -292,26 +292,31 @@
         instance profile/role if you turn this option to On"
       Type: "String"
   Conditions:
-    StackSetsFalse: !Equals
-        - !Ref DeployUsingStackSets
+    StackSetsFalse:
+      Fn::Equals:
+        - Ref: DeployUsingStackSets
         - "False"
-    StackSetsTrue: !Equals
-        - !Ref DeployUsingStackSets
+    StackSetsTrue:
+      Fn::Equals:
+        - Ref: DeployUsingStackSets
         - "True"
-    StackIsMain: !Or
-        - !Condition StackSetsIsMain
-        - !Condition StackSetsFalse
-    StackSetsIsMain: !And
-        - !Condition StackSetsTrue
-        - !Equals
-            - !Ref StackSetsMainRegion
-            - !Ref AWS::Region
-    StackSetsIsRegional: !And
-        - !Condition StackSetsTrue
-        - !Not
-            - !Equals
-                - !Ref StackSetsMainRegion
-                - !Ref AWS::Region
+    StackIsMain:
+      Fn::Or:
+        - Condition: StackSetsIsMain
+        - Condition: StackSetsFalse
+    StackSetsIsMain:
+      Fn::And:
+        - Condition: StackSetsTrue
+        - Fn::Equals:
+            - Ref: StackSetsMainRegion
+            - Ref: AWS::Region
+    StackSetsIsRegional:
+      Fn::And:
+        - Condition: StackSetsTrue
+        - Fn::Not:
+            - Fn::Equals:
+               - Ref: StackSetsMainRegion
+               - Ref: AWS::Region
   Outputs:
     AutoSpottingLambdaARN:
       Condition: "StackSetsIsMain"
@@ -337,10 +342,11 @@
       Type: "AWS::Lambda::Permission"
       Properties:
         Action: "lambda:InvokeFunction"
-        FunctionName: !If
-          - "StackSetsIsRegional"
-          - Ref: "EventHandler"
-          - Ref: "LambdaFunction"
+        FunctionName:
+          Fn::If:
+            - "StackSetsIsRegional"
+            - Ref: "EventHandler"
+            - Ref: "LambdaFunction"
         Principal: "events.amazonaws.com"
         SourceArn:
           Fn::GetAtt:
@@ -363,52 +369,56 @@
         Targets:
           -
             Id: "SpotTerminationEventGenerator"
-            InputTransformer: !If
-              - "StackSetsIsRegional"
-              -
-                InputPathsMap: {
-                  "id": "$.id",
-                  "detail-type": "$.detail-type",
-                  "source": "$.source",
-                  "account": "$.account",
-                  "time": "$.time",
-                  "region": "$.region",
-                  "resources": "$.resources",
-                  "detail": "$.detail"
-                }
-                InputTemplate: !Join ["",
-                  [
-                    "{",
-                    "\"id\": <id>,",
-                    "\"detail-type\": <detail-type>,",
-                    "\"source\": <source>,",
-                    "\"account\": <account>,",
-                    "\"time\": <time>,",
-                    "\"region\": <region>,",
-                    "\"resources\": <resources>,",
-                    "\"detail\": <detail>,",
-                    "\"AutospottingLambdaArn\": \"", !GetAtt RegionalStackSetCustomResource.AutoSpottingLambdaARN, "\"",
-                    "}"
+            InputTransformer:
+              Fn::If:
+                - "StackSetsIsRegional"
+                -
+                  InputPathsMap: {
+                    "id": "$.id",
+                    "detail-type": "$.detail-type",
+                    "source": "$.source",
+                    "account": "$.account",
+                    "time": "$.time",
+                    "region": "$.region",
+                    "resources": "$.resources",
+                    "detail": "$.detail"
+                  }
+                  InputTemplate:
+                    Fn::Join: ["",
+                      [
+                        "{",
+                        "\"id\": <id>,",
+                        "\"detail-type\": <detail-type>,",
+                        "\"source\": <source>,",
+                        "\"account\": <account>,",
+                        "\"time\": <time>,",
+                        "\"region\": <region>,",
+                        "\"resources\": <resources>,",
+                        "\"detail\": <detail>,",
+                        "\"AutospottingLambdaArn\": \"", Fn::GetAtt: RegionalStackSetCustomResource.AutoSpottingLambdaARN, "\"",
+                        "}"
+                      ]
                   ]
-                ]
-              - !Ref 'AWS::NoValue'
-            Arn: !If
-              - "StackSetsIsRegional"
-              - Fn::GetAtt:
-                  - "EventHandler"
-                  - "Arn"
-              - Fn::GetAtt:
-                  - "LambdaFunction"
-                  - "Arn"
+                - Ref: 'AWS::NoValue'
+            Arn:
+              Fn::If:
+                - "StackSetsIsRegional"
+                - Fn::GetAtt:
+                    - "EventHandler"
+                    - "Arn"
+                - Fn::GetAtt:
+                    - "LambdaFunction"
+                    - "Arn"
     InstanceRunningLambdaPermission:
       Condition: "StackSetsTrue"
       Type: "AWS::Lambda::Permission"
       Properties:
         Action: "lambda:InvokeFunction"
-        FunctionName: !If
-          - "StackSetsIsRegional"
-          - Ref: "EventHandler"
-          - Ref: "LambdaFunction"
+        FunctionName:
+          Fn::If:
+            - "StackSetsIsRegional"
+            - Ref: "EventHandler"
+            - Ref: "LambdaFunction"
         Principal: "events.amazonaws.com"
         SourceArn:
           Fn::GetAtt:
@@ -431,52 +441,56 @@
         Targets:
           -
             Id: "InstanceRunningEventGenerator"
-            InputTransformer: !If
-              - "StackSetsIsRegional"
-              -
-                InputPathsMap: {
-                  "id": "$.id",
-                  "detail-type": "$.detail-type",
-                  "source": "$.source",
-                  "account": "$.account",
-                  "time": "$.time",
-                  "region": "$.region",
-                  "resources": "$.resources",
-                  "detail": "$.detail"
-                }
-                InputTemplate: !Join ["",
-                  [
-                    "{",
-                    "\"id\": <id>,",
-                    "\"detail-type\": <detail-type>,",
-                    "\"source\": <source>,",
-                    "\"account\": <account>,",
-                    "\"time\": <time>,",
-                    "\"region\": <region>,",
-                    "\"resources\": <resources>,",
-                    "\"detail\": <detail>,",
-                    "\"AutospottingLambdaArn\": \"", !GetAtt RegionalStackSetCustomResource.AutoSpottingLambdaARN, "\"",
-                    "}"
-                  ]
-                ]
-              - !Ref 'AWS::NoValue'
-            Arn: !If
-              - "StackSetsIsRegional"
-              - Fn::GetAtt:
-                  - "EventHandler"
-                  - "Arn"
-              - Fn::GetAtt:
-                  - "LambdaFunction"
-                  - "Arn"
+            InputTransformer:
+              Fn::If:
+                - "StackSetsIsRegional"
+                -
+                  InputPathsMap: {
+                    "id": "$.id",
+                    "detail-type": "$.detail-type",
+                    "source": "$.source",
+                    "account": "$.account",
+                    "time": "$.time",
+                    "region": "$.region",
+                    "resources": "$.resources",
+                    "detail": "$.detail"
+                  }
+                  InputTemplate:
+                    Fn::Join: ["",
+                      [
+                        "{",
+                        "\"id\": <id>,",
+                        "\"detail-type\": <detail-type>,",
+                        "\"source\": <source>,",
+                        "\"account\": <account>,",
+                        "\"time\": <time>,",
+                        "\"region\": <region>,",
+                        "\"resources\": <resources>,",
+                        "\"detail\": <detail>,",
+                        "\"AutospottingLambdaArn\": \"", Fn::GetAtt: RegionalStackSetCustomResource.AutoSpottingLambdaARN, "\"",
+                        "}"
+                      ]
+                    ]
+                - Ref: 'AWS::NoValue'
+            Arn:
+              Fn::If:
+                - "StackSetsIsRegional"
+                - Fn::GetAtt:
+                    - "EventHandler"
+                    - "Arn"
+                - Fn::GetAtt:
+                    - "LambdaFunction"
+                    - "Arn"
     LifecycleHookLambdaPermission:
       Condition: "StackSetsTrue"
       Type: "AWS::Lambda::Permission"
       Properties:
         Action: "lambda:InvokeFunction"
-        FunctionName: !If
-          - "StackSetsIsRegional"
-          - Ref: "EventHandler"
-          - Ref: "LambdaFunction"
+        FunctionName:
+          Fn::If:
+            - "StackSetsIsRegional"
+            - Ref: "EventHandler"
+            - Ref: "LambdaFunction"
         Principal: "events.amazonaws.com"
         SourceArn:
           Fn::GetAtt:
@@ -504,43 +518,46 @@
         Targets:
           -
             Id: "LifecycleHookEventGenerator"
-            InputTransformer: !If
-              - "StackSetsIsRegional"
-              -
-                InputPathsMap: {
-                  "id": "$.id",
-                  "detail-type": "$.detail-type",
-                  "source": "$.source",
-                  "account": "$.account",
-                  "time": "$.time",
-                  "region": "$.region",
-                  "resources": "$.resources",
-                  "detail": "$.detail"
-                }
-                InputTemplate: !Join ["",
-                  [
-                    "{",
-                    "\"id\": <id>,",
-                    "\"detail-type\": <detail-type>,",
-                    "\"source\": <source>,",
-                    "\"account\": <account>,",
-                    "\"time\": <time>,",
-                    "\"region\": <region>,",
-                    "\"resources\": <resources>,",
-                    "\"detail\": <detail>,",
-                    "\"AutospottingLambdaArn\": \"", !GetAtt RegionalStackSetCustomResource.AutoSpottingLambdaARN, "\"",
-                    "}"
+            InputTransformer:
+              Fn::If:
+                - "StackSetsIsRegional"
+                -
+                  InputPathsMap: {
+                    "id": "$.id",
+                    "detail-type": "$.detail-type",
+                    "source": "$.source",
+                    "account": "$.account",
+                    "time": "$.time",
+                    "region": "$.region",
+                    "resources": "$.resources",
+                    "detail": "$.detail"
+                  }
+                  InputTemplate:
+                    Fn::Join: ["",
+                      [
+                        "{",
+                        "\"id\": <id>,",
+                        "\"detail-type\": <detail-type>,",
+                        "\"source\": <source>,",
+                        "\"account\": <account>,",
+                        "\"time\": <time>,",
+                        "\"region\": <region>,",
+                        "\"resources\": <resources>,",
+                        "\"detail\": <detail>,",
+                        "\"AutospottingLambdaArn\": \"", Fn::GetAtt: RegionalStackSetCustomResource.AutoSpottingLambdaARN, "\"",
+                        "}"
+                      ]
                   ]
-                ]
-              - !Ref 'AWS::NoValue'
-            Arn: !If
-              - "StackSetsIsRegional"
-              - Fn::GetAtt:
-                  - "EventHandler"
-                  - "Arn"
-              - Fn::GetAtt:
-                  - "LambdaFunction"
-                  - "Arn"
+                - Ref: 'AWS::NoValue'
+            Arn:
+              Fn::If:
+                - "StackSetsIsRegional"
+                - Fn::GetAtt:
+                    - "EventHandler"
+                    - "Arn"
+                - Fn::GetAtt:
+                    - "LambdaFunction"
+                    - "Arn"
     LambdaExecutionRole:
       Condition: "StackIsMain"
       Properties:
