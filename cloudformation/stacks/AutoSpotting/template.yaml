@@ -694,6 +694,7 @@
               Resource: "*"
             - 
               Action:
+                - "sqs:ReceiveMessage"
                 - "sqs:SendMessage"
                 - "sqs:DeleteMessage"
                 - "sqs:GetQueueAttributes"
