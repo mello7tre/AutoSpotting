@@ -253,6 +253,11 @@
         "Region of the Main Stack - StackSetsOnly.
         (Need to add this region as first when you specify in which regions deploy stack)"
       Type: "String"
+    SQSQueueName:
+      Default: AutoSpotting.fifo
+      Description: >
+        "The Name of the SQS fifo queue used to manage spot replacement actions."
+      Type: "String"
     TagFilteringMode:
       AllowedValues:
         - "opt-in"
@@ -733,7 +738,8 @@
         ContentBasedDeduplication: true
         FifoQueue: true
         MessageRetentionPeriod: 600
-        QueueName: AutoSpotting.fifo
+        QueueName:
+          Ref: "SQSQueueName"
         VisibilityTimeout: 900
 
     LambdaRegionalStackPolicy:
