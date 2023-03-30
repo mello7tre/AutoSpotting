@@ -332,6 +332,16 @@ func (i *instance) processLaunchTemplate(retval *ec2.RequestLaunchTemplateData) 
 		retval.UserData = ltData.UserData
 	}
 
+	retval.TagSpecifications = []*ec2.LaunchTemplateTagSpecificationRequest{}
+	for _, ts := range ltData.TagSpecifications {
+		retval.TagSpecifications = append(retval.TagSpecifications,
+			&ec2.LaunchTemplateTagSpecificationRequest{
+				ResourceType: ts.ResourceType,
+				Tags: ts.Tags,
+			},
+		)
+	}
+
 	return nil
 }
 
@@ -443,7 +453,14 @@ func (i *instance) createLaunchTemplateData() (*ec2.RequestLaunchTemplateData, e
 
 	ltData.Placement = &placement
 
-	ltData.TagSpecifications = i.generateTagsList()
+	//MELLO
+	generatedTagSpecifications := i.generateTagsList()
+	for _, ts := range ltData.TagSpecifications {
+		if ts.ResourceType != aws.String("instance") {
+			generatedTagSpecifications = append(generatedTagSpecifications, ts)
+		}
+	}
+	ltData.TagSpecifications = generatedTagSpecifications
 
 	debug.Printf("ltData: %+#v\n", ltData)
 
