@@ -332,6 +332,7 @@ func (i *instance) processLaunchTemplate(retval *ec2.RequestLaunchTemplateData) 
 		retval.UserData = ltData.UserData
 	}
 
+	// MELLO
 	retval.TagSpecifications = []*ec2.LaunchTemplateTagSpecificationRequest{}
 	for _, ts := range ltData.TagSpecifications {
 		retval.TagSpecifications = append(retval.TagSpecifications,
@@ -456,7 +457,7 @@ func (i *instance) createLaunchTemplateData() (*ec2.RequestLaunchTemplateData, e
 	//MELLO
 	generatedTagSpecifications := i.generateTagsList()
 	for _, ts := range ltData.TagSpecifications {
-		if ts.ResourceType != aws.String("instance") {
+		if *ts.ResourceType != "instance" {
 			generatedTagSpecifications = append(generatedTagSpecifications, ts)
 		}
 	}
