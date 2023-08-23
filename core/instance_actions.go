@@ -49,7 +49,7 @@ func (i *instance) launchSpotReplacement() (*string, error) {
 	debug.Printf("Fleet Launch Template: %+#v", lt)
 
 	if err != nil {
-		log.Println(i.region, i.asg.name, "createFleetLaunchTemplate() failure:", err.Error())
+		log.Println(i.region.name, i.asg.name, "createFleetLaunchTemplate() failure:", err.Error())
 		return nil, err
 	}
 
@@ -70,12 +70,16 @@ func (i *instance) launchSpotReplacement() (*string, error) {
 	resp, err := i.region.services.ec2.CreateFleet(cfi)
 
 	if err != nil {
-		log.Println(i.region, i.asg.name, "CreateFleet() failure:", err.Error())
+		log.Println(i.region.name, i.asg.name, "CreateFleet() failure:", err.Error())
 		return nil, err
 	}
 
 	if resp != nil && len(resp.Instances) > 0 && resp.Instances[0] != nil && len(resp.Instances[0].InstanceIds) > 0 {
 		return resp.Instances[0].InstanceIds[0], nil
+	}
+
+	if resp != nil && len(resp.Errors) > 0 {
+		log.Println(i.region.name, i.asg.name, "CreateFleet, instances cannot be launched:", resp.Errors)
 	}
 
 	return nil, fmt.Errorf("Couldn't launch spot instance replacement")
