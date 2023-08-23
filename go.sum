@@ -5,14 +5,9 @@ github.com/aws/aws-sdk-go v1.40.39 h1:Q88WMQH14vKWV95hMvJGzqZKL3s3gPFX3KXKfrqxb5
 github.com/aws/aws-sdk-go v1.40.39/go.mod h1:585smgzpB/KqRA+K3y/NL/oYRqQvpNJYvLm+LY1U59Q=
 github.com/cpuguy83/go-md2man/v2 v2.0.0-20190314233015-f79a8a8ca69d/go.mod h1:maD7wRr/U5Z6m/iR4s+kqSMx2CaBsrgA7czyZG/E6dU=
 github.com/cpuguy83/go-md2man/v2 v2.0.0/go.mod h1:maD7wRr/U5Z6m/iR4s+kqSMx2CaBsrgA7czyZG/E6dU=
-github.com/cristim/ec2-instances-info v0.0.0-20210909050335-b239c40fcad0 h1:X6u+vwxB2EQwA8+A7jhkYdNK0oE0p0LuuiPbAezZH+g=
-github.com/cristim/ec2-instances-info v0.0.0-20210909050335-b239c40fcad0/go.mod h1:0yCjO4zBzlwWSGh/zGfW2Zq1NX605qCYVBHD1fPXKNs=
-github.com/cristim/ec2-instances-info v0.0.0-20220302182402-4b7a873a84cf h1:/0fth76qMtSWpTbkOLRKHX/k6KgUAK6HMbXArUi7dTc=
-github.com/cristim/ec2-instances-info v0.0.0-20220302182402-4b7a873a84cf/go.mod h1:0yCjO4zBzlwWSGh/zGfW2Zq1NX605qCYVBHD1fPXKNs=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/go-bindata/go-bindata v3.1.2+incompatible/go.mod h1:xK8Dsgwmeed+BBsSy2XTopBn/8uK2HWuGSnA11C3Joo=
 github.com/google/go-cmp v0.3.0 h1:crn/baboCvb5fXaQ0IJ1SGTsTVrWpDsCWC8EGETZijY=
 github.com/google/go-cmp v0.3.0/go.mod h1:8QqcDgzrUqlUb/G2PQTWiueGozuR1884gddMywk6iLU=
 github.com/jmespath/go-jmespath v0.4.0 h1:BEgLn5cpjn8UN1mAw4NjwDrS35OdebyEtFe+9YPoQUg=
@@ -21,6 +16,8 @@ github.com/jmespath/go-jmespath/internal/testify v1.5.1 h1:shLQSRRSCCPj3f2gpwzGw
 github.com/jmespath/go-jmespath/internal/testify v1.5.1/go.mod h1:L3OGu8Wl2/fWfCI6z80xFu9LTZmf1ZRjMHUOPmWr69U=
 github.com/mattn/goveralls v0.0.9 h1:XmIwwrO9a9pqSW6IpI89BSCShzQxx0j/oKnnvELQNME=
 github.com/mattn/goveralls v0.0.9/go.mod h1:FRbM1PS8oVsOe9JtdzAAXM+DsvDMMHcM1C7drGJD8HY=
+github.com/mello7tre/ec2-instances-info v0.0.0-20230823082306-c9af37e69559 h1:zltLQMXQ3E2cO5NwixTq23eNkgik+eW7Y0Rv7kZ+Rgo=
+github.com/mello7tre/ec2-instances-info v0.0.0-20230823082306-c9af37e69559/go.mod h1:/E8L/39dgTFf2hN2JDsTtfkDVVoRhEwMF1lYZv/WQBY=
 github.com/namsral/flag v0.0.0-20170814194028-67f268f20922 h1:dRRQLGaXoPysHledlqbOa53vGxt0WjaVtdCexlWiRjA=
 github.com/namsral/flag v0.0.0-20170814194028-67f268f20922/go.mod h1:OXldTctbM6SWH1K899kPZcf65KxJiD7MsceFUpB5yDo=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
