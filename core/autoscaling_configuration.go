@@ -364,7 +364,7 @@ func (a *autoScalingGroup) LoadCronScheduleState() bool {
 	return false
 }
 
-func (a *autoScalingGroup) LoadTerminationNotificationAction() bool {
+func (a *autoScalingGroup) loadTerminationNotificationAction() bool {
 	tagValue := a.getTagValue(TerminationNotificationActionTag)
 	if tagValue != nil {
 		log.Printf("Loaded TerminationNotificationAction value %v from tag %v\n", *tagValue, TerminationNotificationActionTag)
