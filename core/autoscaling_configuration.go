@@ -110,6 +110,10 @@ const (
 	// SpotAllocationStrategyTag is the name of the tag set on the AutoScaling Group that
 	// can override the global value of the SpotAllocationStrategy parameter
 	SpotAllocationStrategyTag = "autospotting_spot_allocation_strategy"
+
+	// TerminationNotificationActionTag is the name of the tag set on the AutoScaling Group that
+	// can override the global value of the TerminationNotificationAction parameter
+	TerminationNotificationActionTag = "autospotting_termination_notification_action"
 )
 
 // AutoScalingConfig stores some group-specific configurations that can override
@@ -360,6 +364,19 @@ func (a *autoScalingGroup) LoadCronScheduleState() bool {
 	return false
 }
 
+func (a *autoScalingGroup) LoadTerminationNotificationAction() bool {
+	tagValue := a.getTagValue(TerminationNotificationActionTag)
+	if tagValue != nil {
+		log.Printf("Loaded TerminationNotificationAction value %v from tag %v\n", *tagValue, TerminationNotificationActionTag)
+		a.config.TerminationNotificationAction = *tagValue
+		return true
+	}
+
+	debug.Println("Couldn't find tag", TerminationNotificationActionTag, "on the group", a.name, "using the default configuration")
+	a.config.TerminationNotificationAction = a.region.conf.TerminationNotificationAction
+	return false
+}
+
 func (a *autoScalingGroup) loadConfSpot() bool {
 	tagValue := a.getTagValue(BiddingPolicyTag)
 	if tagValue == nil {
@@ -433,32 +450,37 @@ func (a *autoScalingGroup) loadConfigFromTags() bool {
 	}
 
 	if a.LoadCronSchedule() {
-		log.Println("Found and applied configuration for Spot Price")
+		log.Println("Found and applied configuration for CronSchedule")
 		ret = true
 	}
 
 	if a.LoadCronTimezone() {
-		log.Println("Found and applied configuration for Spot Price")
+		log.Println("Found and applied configuration for CronTimezone")
 		ret = true
 	}
 
 	if a.LoadCronScheduleState() {
-		log.Println("Found and applied configuration for Spot Price")
+		log.Println("Found and applied configuration for CronScheduleState")
 		ret = true
 	}
 
 	if a.loadPatchBeanstalkUserdata() {
-		log.Println("Found and applied configuration for Spot Price")
+		log.Println("Found and applied configuration for PatchBeanstalkUserdata")
 		ret = true
 	}
 
 	if a.loadGP2ConversionThreshold() {
-		log.Println("Found and applied configuration for Spot Price")
+		log.Println("Found and applied configuration for GP2ConversionThreshold")
 		ret = true
 	}
 
 	if a.loadSpotAllocationStrategy() {
-		log.Println("Found and applied configuration for Spot Price")
+		log.Println("Found and applied configuration for SpotAllocationStrategy")
+		ret = true
+	}
+
+	if a.loadTerminationNotificationAction() {
+		log.Println("Found and applied configuration for TerminationNotificationAction")
 		ret = true
 	}
 
