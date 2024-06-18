@@ -28,6 +28,7 @@ type SpotTermination struct {
 	asSvc           autoscalingiface.AutoScalingAPI
 	ec2Svc          ec2iface.EC2API
 	SleepMultiplier time.Duration
+	asg             autoScalingGroup
 }
 
 func newSpotTermination(region string) SpotTermination {
@@ -238,6 +239,11 @@ func (s *SpotTermination) IsInAutoSpottingASG(instanceID *string, tagFilteringMo
 		return false
 	}
 
+	s.asg = autoScalingGroup{
+	  Group:  asgGroupsOutput.AutoScalingGroups[0],
+	  name:   asgName,
+	}
+
 	filters := replaceWhitespace(filterByTags)
 
 	var tagsToMatch = []Tag{}
@@ -258,4 +264,19 @@ func (s *SpotTermination) IsInAutoSpottingASG(instanceID *string, tagFilteringMo
 	}
 
 	return isInASG
+}
+
+
+// get AutoscalingGroup config TerminationNotificationAction from Tags
+func (s *SpotTermination) getTermAction(defaultTerminationNotificationAction string) string {
+  a := s.asg
+
+  tagValue := a.getTagValue(TerminationNotificationActionTag)
+  if tagValue != nil {
+    log.Printf("Loaded TerminationNotificationAction value %v from tag %v\n", *tagValue, TerminationNotificationActionTag)
+    return *tagValue
+  }
+
+  debug.Println("Couldn't find tag", TerminationNotificationActionTag, "on the group", a.name, "using the default configuration")
+  return defaultTerminationNotificationAction
 }
