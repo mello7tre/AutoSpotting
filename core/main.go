@@ -266,6 +266,7 @@ func (a *AutoSpotting) processEventInstance(eventType string, region string, ins
 
 		if spotTermination.IsInAutoSpottingASG(instanceID, a.config.TagFilteringMode, a.config.FilterByTags) {
 		        asgTermAction := spotTermination.getTermAction(a.config.TerminationNotificationAction)
+			//log.Printf("asgTermAction: %s", asgTermAction)
 			err := spotTermination.executeAction(instanceID, asgTermAction, eventType)
 			if err != nil {
 				log.Printf("Error executing spot termination/rebalance action: %s\n", err.Error())
