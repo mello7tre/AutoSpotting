@@ -7,7 +7,7 @@ require (
 	github.com/aws/aws-sdk-go v1.40.39
 	github.com/davecgh/go-spew v1.1.1
 	github.com/mattn/goveralls v0.0.9
-	github.com/mello7tre/ec2-instances-info v0.0.0-20231002084426-f43690f61ece
+	github.com/mello7tre/ec2-instances-info v0.0.0-20251113095447-f43690f61ece
 	github.com/namsral/flag v0.0.0-20170814194028-67f268f20922
 	github.com/robfig/cron/v3 v3.0.1
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
