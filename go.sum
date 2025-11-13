@@ -17,8 +17,8 @@ github.com/jmespath/go-jmespath/internal/testify v1.5.1 h1:shLQSRRSCCPj3f2gpwzGw
 github.com/jmespath/go-jmespath/internal/testify v1.5.1/go.mod h1:L3OGu8Wl2/fWfCI6z80xFu9LTZmf1ZRjMHUOPmWr69U=
 github.com/mattn/goveralls v0.0.9 h1:XmIwwrO9a9pqSW6IpI89BSCShzQxx0j/oKnnvELQNME=
 github.com/mattn/goveralls v0.0.9/go.mod h1:FRbM1PS8oVsOe9JtdzAAXM+DsvDMMHcM1C7drGJD8HY=
-github.com/mello7tre/ec2-instances-info v0.0.0-20231002084426-44ab95082b4c h1:tg1HcU7yl5TKf9bNAkfMDlfuzMP6iSFjuL6qZUJ4CMQ=
-github.com/mello7tre/ec2-instances-info v0.0.0-20231002084426-44ab95082b4c/go.mod h1:dZj12X6Hd7FeypplqSGQbHkONBBW4oszD5k67qvQrFk=
+github.com/mello7tre/ec2-instances-info v0.0.0-20251113095447-f43690f61ece h1:TCMowqZWqx1KIasN3fFHhEWxIt5o1aY3hu4YIxciqm4=
+github.com/mello7tre/ec2-instances-info v0.0.0-20251113095447-f43690f61ece/go.mod h1:dZj12X6Hd7FeypplqSGQbHkONBBW4oszD5k67qvQrFk=
 github.com/namsral/flag v0.0.0-20170814194028-67f268f20922 h1:dRRQLGaXoPysHledlqbOa53vGxt0WjaVtdCexlWiRjA=
 github.com/namsral/flag v0.0.0-20170814194028-67f268f20922/go.mod h1:OXldTctbM6SWH1K899kPZcf65KxJiD7MsceFUpB5yDo=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
